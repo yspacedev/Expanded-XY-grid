@@ -112,7 +112,7 @@ def apply_prompt(p, x, xs):
 
 def SR_placeholder(p, x, xs):
     if xs[0] not in p.prompt and xs[0] not in p.negative_prompt:
-        raise RuntimeError(f"Prompt S/R did not find {xs[0]} in prompt or negative prompt.")
+        raise RuntimeError(f"Prompt S/R placeholder did not find {xs[0]} in prompt or negative prompt.")
     if x == xs[0]:
         x=""
     p.prompt = p.prompt.replace(xs[0], x)
@@ -124,7 +124,7 @@ def apply_multitool(p, x, xs):
     fields = []
     data = []
     attributes=x.split(" | ")
-    for attr in attributes: # if it's one of the special ones, parse the str(list of lists) into a list of lists #add
+    for attr in attributes: # if it's one of the special ones, parse the str(list of lists) into a list of lists #add (not completely sure if this works)
         field, datum = attr.split(": ")
         fields.append(field)
         option = axis_opt_name_find(field)
@@ -144,7 +144,7 @@ def apply_multitool(p, x, xs):
                 field, datapiece = attr.split(": ")
                 if field == fields[ind] and datapiece not in datalist:
                     option = axis_opt_name_find(fields[ind])
-                    if option.type == int: # if it's one of the special ones, parse the str(list of lists) into a list of lists #add
+                    if option.type == int: # if it's one of the special ones, parse the str(list of lists) into a list of lists #add (not completely sure if this works)
                         datalist.append(int(datapiece))
                     elif option.type == float:
                         datalist.append(float(datapiece))
@@ -167,7 +167,7 @@ def parse_multitool(parse_input):
     for param in splitinput:
         param=param.strip()
         field, datapiece = param.split(":")
-        fields.append(field.strip())
+        fields.append(axis_opt_name_find(field.strip()).label) #do this to get a consistent field name (with consistent capitalization) rather than whatever the user types
         data.append(datapiece.strip())
     newdata = []
     #parse the subinputs
@@ -189,19 +189,6 @@ def parse_multitool(parse_input):
             string.append(f"{fields[index]}: {result[index]}")
         strings.append(" | ".join(string))
     return strings
-
-def get_multitool_step_count(p, xs, ys, x_opt, y_opt):
-    raise NotImplementedError("This is confusing")
-    totalsteps = 0
-    for x in xs: #parse xs to get step counts for axis
-        attrs = x.split(" | ")
-        for attr in attrs:
-            field, datapiece = attr.split(": ")
-            if field == "Steps":
-                totalsteps = totalsteps + int(datapiece)
-    if totalsteps == 0:
-        totalsteps = p.steps*xs
-    return totalsteps
 
 def apply_order(p, x, xs):
     token_order = []
@@ -499,11 +486,33 @@ class Script(scripts.Script):
             xs = fix_axis_seeds(x_opt, xs)
             ys = fix_axis_seeds(y_opt, ys)
 
-        #need to fix steps for multitool
+
+        x_steps = []
         if x_opt.label == 'Steps':
-            total_steps = sum(xs) * len(ys)
-        elif y_opt.label == 'Steps':
-            total_steps = sum(ys) * len(xs)
+            x_steps = xs
+        elif x_opt.label == 'Multitool':
+            for x in xs: #parse xs to get step counts for axis
+                attrs = x.split(" | ")
+                for attr in attrs:
+                    field, datapiece = attr.split(": ")
+                    if field == "Steps":
+                        x_steps.append(int(datapiece))
+        
+        y_steps = []
+        if y_opt.label == 'Steps':
+            y_steps = ys
+        elif y_opt.label == 'Multitool':
+            for y in ys: #parse ys to get step counts for axis
+                attrs = y.split(" | ")
+                for attr in attrs:
+                    field, datapiece = attr.split(": ")
+                    if field == "Steps":
+                        y_steps.append(int(datapiece))
+        
+        if x_steps != []:
+            total_steps = len(ys)*sum(x_steps)
+        elif y_steps != []:
+            total_steps = len(xs)*sum(y_steps)
         else:
             total_steps = p.steps * len(xs) * len(ys)
 
