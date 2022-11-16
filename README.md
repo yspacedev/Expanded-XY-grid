@@ -58,7 +58,9 @@ There is a minor "bug" where if you use Prompt Matrix in both x and y, and the p
 
 
 Example images:
-
+Prompt: "darth vader riding a bicycle, modifier"
+X: Multitool: "Prompt S/R: bicycle, motorcycle | CFG scale: 7.5, 10 | Prompt S/R Placeholder: modifier, 4k, artstation"
+Y: Multitool: "Sampler: Euler, Euler a | Steps: 20, 50"
 ![xy_grid-0000-1775631796-darth vader riding a bicycle, modifier-min](https://user-images.githubusercontent.com/80003301/202277871-a4a3341b-13f7-42f4-a3e6-ca8f8cd8250a.png)
 ![xy_grid-0001-2789616861-darth vader riding a bicycle-min](https://user-images.githubusercontent.com/80003301/202277910-40d72e95-0afe-4a84-821f-d769035e27d1.png)
 ![xy_grid-0005-3171584222-darth vader riding a bicycle-min](https://user-images.githubusercontent.com/80003301/202277930-33f371b9-e128-44d0-83dc-e0ac632d5b18.png)
