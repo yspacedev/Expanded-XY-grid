@@ -6,6 +6,7 @@ Multitool (still working on getting the step count to be correct)
 Customizable prompt matrix
 S/R Placeholder
 Group files in a directory (still working on)
+Add PNGinfo to grid image
 
 The code may be very confusing and cluttered because I am not a professional programmer. You are free to add a pull request to this repository to clean up my code, add a feature, or squash some bugs. For now, I've tested it enough to say it works in most cases, but if you encounter a case where it errors out or doesn't work properly, put it in the discussions.
 
