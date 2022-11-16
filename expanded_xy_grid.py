@@ -86,7 +86,6 @@ def process_axis(opt, vals):
         valslist = output
 
     valslist = [opt.type(x) for x in valslist]
-    print(valslist)
     return valslist
 
 def axis_opt_name_find(name):
@@ -137,7 +136,6 @@ def apply_multitool(p, x, xs):
             data.append(datum)
         else:
             data.append(datum)
-    print(data)
     for ind in range(len(data)):
         datalist=[]
         for x in xs: #parse xs to get local xs
@@ -190,7 +188,6 @@ def parse_multitool(parse_input):
         for index in range(len(result)):
             string.append(f"{fields[index]}: {result[index]}")
         strings.append(" | ".join(string))
-    print(strings)
     return strings
 
 def get_multitool_step_count(p, xs, ys, x_opt, y_opt):
@@ -231,15 +228,13 @@ def apply_order(p, x, xs):
     p.prompt = prompt_tmp + p.prompt
     
 def apply_matrix(p, x, xs):
-    print(x)
     x = [x.strip() for x in chain.from_iterable(
         csv.reader(StringIO(x)))]
-    print(x)
     replace = x[0]
-    if len(x)==2:
+    if len(x)==1:
         replacewith = ""
     else:
-        replacewith = str(x[1:])
+        replacewith = ", ".join(x[1:])
     if replace not in p.prompt and replace not in p.negative_prompt:
         raise RuntimeError(f"Prompt matrix did not find {replace} in prompt or negative prompt.")
     p.prompt = p.prompt.replace(replace, replacewith)
@@ -449,7 +444,7 @@ re_range_count_float = re.compile(r"\s*([+-]?\s*\d+(?:.\d*)?)\s*-\s*([+-]?\s*\d+
 
 class Script(scripts.Script):
     def title(self):
-        return "Expanded X/Y plot"
+        return "X/Y plot"
 
     def ui(self, is_img2img):
         current_axis_options = [x for x in axis_options if type(x) == AxisOption or type(x) == AxisOptionImg2Img and is_img2img]
