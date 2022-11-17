@@ -429,9 +429,14 @@ re_range_float = re.compile(r"\s*([+-]?\s*\d+(?:.\d*)?)\s*-\s*([+-]?\s*\d+(?:.\d
 re_range_count = re.compile(r"\s*([+-]?\s*\d+)\s*-\s*([+-]?\s*\d+)(?:\s*\[(\d+)\s*\])?\s*")
 re_range_count_float = re.compile(r"\s*([+-]?\s*\d+(?:.\d*)?)\s*-\s*([+-]?\s*\d+(?:.\d*)?)(?:\s*\[(\d+(?:.\d*)?)\s*\])?\s*")
 
+invalid_filename_chars = '<>:"/\\|?*\n'
+invalid_filename_prefix = ' '
+invalid_filename_postfix = ' .'
+max_filename_part_length = 128
+
 class Script(scripts.Script):
     def title(self):
-        return "X/Y plot"
+        return "Extended X/Y plot"
 
     def ui(self, is_img2img):
         current_axis_options = [x for x in axis_options if type(x) == AxisOption or type(x) == AxisOptionImg2Img and is_img2img]
@@ -452,13 +457,21 @@ class Script(scripts.Script):
         return [x_type, x_values, y_type, y_values, draw_legend, include_lone_images, no_fixed_seeds, put_in_dir]
 
     def run(self, p, x_type, x_values, y_type, y_values, draw_legend, include_lone_images, no_fixed_seeds, put_in_dir):
-        opts.save_to_dirs = put_in_dir #add does work, but if the prompts are changed, the files go to different directories
+        if put_in_dir:
+            text = p.prompt
+            text = text.translate({ord(x): '_' for x in invalid_filename_chars})
+            text = text.lstrip(invalid_filename_prefix)[:max_filename_part_length]
+            text = text.rstrip(invalid_filename_postfix)
+            savedir_img2img = opts.outdir_img2img_samples
+            savedir_txt2img = opts.outdir_txt2img_samples
+            opts.outdir_img2img_samples = savedir_img2img+"/"+text
+            opts.outdir_txt2img_samples = savedir_txt2img+"/"+text
+
         if not no_fixed_seeds:
             modules.processing.fix_seed(p)
 
         if not opts.return_grid:
             p.batch_size = 1
-        
         xs = []
         x_opt = axis_options[x_type]
         if x_opt.label == "Multitool":
@@ -543,13 +556,20 @@ class Script(scripts.Script):
         infostring=f"""
             {p.prompt}
             Negative prompt: {p.negative_prompt}
+            X: {axis_options[x_type].label}: {x_values}
+            Y: {axis_options[y_type].label}: {y_values}
             Steps: {p.steps},
-            Sampler: {p.sampler},
             CFG scale: {p.cfg_scale},
-            Seed: {p.seed}
+            Seed: {p.seed},
+            Size: {p.width}x{p.height},
+            Model hash: {getattr(p, 'sd_model_hash', None if not opts.add_model_hash_to_info or not shared.sd_model.sd_model_hash else shared.sd_model.sd_model_hash)},
+            Model: {(None if not opts.add_model_name_to_info or not shared.sd_model.sd_checkpoint_info.model_name else shared.sd_model.sd_checkpoint_info.model_name.replace(',', '').replace(':', ''))},
+            Sampler: {get_correct_sampler(p)[p.sampler_index].name}
         """
         if opts.grid_save:
             images.save_image(processed.images[0], p.outpath_grids, "xy_grid", prompt=p.prompt, seed=processed.seed, grid=True, p=p, info = infostring)
 
-        opts.save_to_dirs = False
+        if put_in_dir: #reset save path
+            opts.outdir_img2img_samples = savedir_img2img
+            opts.outdir_txt2img_samples = savedir_txt2img
         return processed
