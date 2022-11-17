@@ -9,7 +9,8 @@ Customizable prompt matrix
 
 S/R Placeholder
 
-Group files in a directory (still working on)
+Group files in a directory![Screenshot 2022-11-16 211052](https://user-images.githubusercontent.com/80003301/202345637-a48d8e28-6bd7-4d3e-9539-94d41b4c6d50.png)
+
 
 Add PNGinfo to grid image
 
