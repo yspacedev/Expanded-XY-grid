@@ -22,7 +22,9 @@ This script is very heavily based (I just modified the code) on the original xy_
 I'm calling this an Alpha release because it is by no means complete or bug free, and definitely has some things left over from development.
 
 
+
 Feature usage:
+
 
 Multitool:
 
@@ -32,21 +34,29 @@ You can now have a CFG scale and steps plot that also compares checkpoint name.
 Format:
 <Exact name of field (not case sensitive)>: parameter1, parameter2... | <Exact name of field (not case sensitive)>: parameter1, parameter2... | ...
 
-For example: Steps: 20, 50 | CFG scale: 7, 10 will create an axis with all possible combinations of those values (Steps: 20 | CFG scale: 7; Steps: 20 | CFG scale: 10; Steps: 50 | CFG scale: 7; Steps: 50 | CFG scale: 10)
+For example: "Steps: 20, 50 | CFG scale: 7, 10" will create an axis with all possible combinations of those values (Steps: 20 | CFG scale: 7; Steps: 20 | CFG scale: 10; Steps: 50 | CFG scale: 7; Steps: 50 | CFG scale: 10)
  
 The data parameters can use ranges like any numerical field can in the base xy_grid script.
 
-For example: Steps: 20-40 (+10) | CFG scale: 7, 10 will create an axis with all possible combinations of those values (Steps: 20 | CFG scale: 7; Steps: 20 | CFG scale: 10; Steps: 30 | CFG scale: 7; Steps: 30 | CFG scale: 10; Steps: 40 | CFG scale: 7; Steps: 40 | CFG scale: 10)
+For example: "Steps: 20-40 (+10) | CFG scale: 7, 10" will create an axis with all possible combinations of those values (Steps: 20 | CFG scale: 7; Steps: 20 | CFG scale: 10; Steps: 30 | CFG scale: 7; Steps: 30 | CFG scale: 10; Steps: 40 | CFG scale: 7; Steps: 40 | CFG scale: 10)
 
-It also works with text parameters with fields like S/R. For example, Prompt S/R: a bicycle, a skateboard, a motorcycle | Steps: 20, 50
+It also works with text parameters with fields like S/R. For example, "Prompt S/R: a bicycle, a skateboard, a motorcycle | Steps: 20, 50"
+
+
 
 Prompt S/R placeholder:
 
 This very small feature allows you to replace a placeholder value (the first value in the list of parameters) with desired values. 
 
-Example: Prompt: darth vader riding a bicycle, modifier; X parameters: modifier, 4k, 8k
-For example, the original Prompt S/R will create the prompts [darth vader riding a bicycle, modifier; darth vader riding a bicycle, 4k; darth vader riding a bicycle, 8k]
-Prompt S/R Placeholder will create the prompts [darth vader riding a bicycle, ; darth vader riding a bicycle, 4k; darth vader riding a bicycle, 8k]
+Example: Prompt: darth vader riding a bicycle, modifier
+
+X parameters: modifier, 4k, 8k
+
+The original Prompt S/R would create the prompts [darth vader riding a bicycle, modifier; darth vader riding a bicycle, 4k; darth vader riding a bicycle, 8k] along the axis
+
+Prompt S/R Placeholder will create the prompts [darth vader riding a bicycle, ; darth vader riding a bicycle, 4k; darth vader riding a bicycle, 8k] along that axis
+
+
 
 Prompt matrix:
 
@@ -55,6 +65,8 @@ This feature functions like S/R placeholder, except it replaces the placeholder 
 For example: modifier, highly detailed, 4k will replace ALL occurrences of the word "modifier" in the prompt and negative prompt with a combination of "highly detailed" and "4k" (4k; highly detailed; 4k, highly detailed).
 
 There is a minor "bug" where if you use Prompt Matrix in both x and y, and the placeholder words share the same order of characters, the parser will throw an error. (Example: on x: modifier, 4k, 8k; on y: modifier2, realistic, photo) This is because Python replaces all instances of a word like "modifier" with the desired words, and it ends up also replacing the other axis's placeholder word, for example "modifier2". A solution to this is to use "modifier1" as the placeholder value for one axis, and "modifier2" as the placeholder for the other axis.
+
+
 
 
 Example images:
