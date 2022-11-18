@@ -19,6 +19,7 @@ import modules.sd_samplers
 import modules.sd_models
 import re
 
+#add get prompt order to work. I'll have timplement a check in all the multitool stuff to treat it as an array instead of a string
 def process_axis(opt, vals):
     if opt.label == 'Nothing':
         return [0]
@@ -106,8 +107,8 @@ def apply_prompt(p, x, xs):
     if xs[0] not in p.prompt and xs[0] not in p.negative_prompt:
         raise RuntimeError(f"Prompt S/R did not find {xs[0]} in prompt or negative prompt.")
 
-    p.prompt = p.prompt.replace(xs[0], x)
-    p.negative_prompt = p.negative_prompt.replace(xs[0], x)
+    p.prompt = remove_junk(p.prompt.replace(xs[0], x))
+    p.negative_prompt = remove_junk(p.negative_prompt.replace(xs[0], x))
     
 
 def SR_placeholder(p, x, xs):
@@ -115,8 +116,8 @@ def SR_placeholder(p, x, xs):
         raise RuntimeError(f"Prompt S/R placeholder did not find {xs[0]} in prompt or negative prompt.")
     if x == xs[0]:
         x=""
-    p.prompt = p.prompt.replace(xs[0], x)
-    p.negative_prompt = p.negative_prompt.replace(xs[0], x)
+    p.prompt = remove_junk(p.prompt.replace(xs[0], x))
+    p.negative_prompt = remove_junk(p.negative_prompt.replace(xs[0], x))
 
 
 def apply_multitool(p, x, xs):
@@ -132,8 +133,8 @@ def apply_multitool(p, x, xs):
             data.append(int(datum))
         elif option.type == float:
             data.append(float(datum))
-        elif option.type == str_permutations or str_matrix_permutations:
-            data.append(datum)
+        elif option.type == str_permutations:
+            data.append(datum.split(", "))
         else:
             data.append(datum)
     for ind in range(len(data)):
@@ -149,7 +150,7 @@ def apply_multitool(p, x, xs):
                     elif option.type == float:
                         datalist.append(float(datapiece))
                     elif option.type == str_permutations or str_matrix_permutations:
-                        datalist.append(datapiece)
+                        datalist.append(datapiece.split(", "))
                     else:
                         datalist.append(datapiece)
         opt_field = axis_opt_name_find(fields[ind])
@@ -173,7 +174,14 @@ def parse_multitool(parse_input):
     #parse the subinputs
     for ind in range(len(fields)):
         field_selected = axis_opt_name_find(fields[ind])
-        newdata.append(process_axis(field_selected, data[ind]))
+        processed_data = process_axis(field_selected, data[ind])
+        if (field_selected.type == str_permutations):
+            dummy = []
+            for permutation in processed_data:
+                dummy.append(", ".join(permutation))
+            newdata.append(dummy)
+        else:
+            newdata.append(processed_data)
     data=newdata
 
     #find all combinations
@@ -224,9 +232,29 @@ def apply_matrix(p, x, xs):
         replacewith = ", ".join(x[1:])
     if replace not in p.prompt and replace not in p.negative_prompt:
         raise RuntimeError(f"Prompt matrix did not find {replace} in prompt or negative prompt.")
-    p.prompt = p.prompt.replace(replace, replacewith)
-    p.negative_prompt = p.negative_prompt.replace(replace, replacewith)
+    p.prompt = remove_junk(p.prompt.replace(replace, replacewith))
+    p.negative_prompt = remove_junk(p.negative_prompt.replace(replace, replacewith))
     #take first value in xs, and replace that string in prompt or negative_prompt with whatever is in x (unless x is the same as xs[0])
+
+def remove_junk(input_string):
+    output_string = input_string.replace(", ,", ", ")
+    output_string = output_string.replace(",,", ", ")
+    output_string = output_string.strip(", ")
+    return output_string
+
+def format_multitool(p, opt, x):
+    attrs = x.split(" | ")
+    formatted_list = []
+    for attr in attrs:
+        field, datapiece = attr.split(": ")
+        field_opt = axis_opt_name_find(field)
+        if field_opt.type == int: # if it's one of the special ones, parse the str(list of lists) into a list of lists #add (not completely sure if this works)
+            datapiece = int(datapiece)
+        elif field_opt.type == float:
+            datapiece = float(datapiece)
+        datapiece = field_opt.format_value(p, field_opt, datapiece)
+        formatted_list.append(', '.join((field, datapiece)))
+    return ' | '.join(formatted_list)
 
 def build_samplers_dict(p):
     samplers_dict = {}
@@ -458,6 +486,8 @@ class Script(scripts.Script):
 
     def run(self, p, x_type, x_values, y_type, y_values, draw_legend, include_lone_images, no_fixed_seeds, put_in_dir):
         if put_in_dir:
+            prev_save_to_dirs = opts.save_to_dirs
+            opts.save_to_dirs = True
             text = p.prompt
             text = text.translate({ord(x): '_' for x in invalid_filename_chars})
             text = text.lstrip(invalid_filename_prefix)[:max_filename_part_length]
@@ -532,7 +562,7 @@ class Script(scripts.Script):
         if isinstance(p, StableDiffusionProcessingTxt2Img) and p.enable_hr:
             total_steps *= 2
 
-        print(f"X/Y plot will create {len(xs) * len(ys) * p.n_iter} images on a {len(xs)}x{len(ys)} grid. (Total steps to process: {total_steps * p.n_iter})")
+        print(f"Extended X/Y plot will create {len(xs) * len(ys) * p.n_iter} images on a {len(xs)}x{len(ys)} grid. (Total steps to process: {total_steps * p.n_iter})")
         shared.total_tqdm.updateTotal(total_steps * p.n_iter)
 
         def cell(x, y):
@@ -569,7 +599,8 @@ class Script(scripts.Script):
         if opts.grid_save:
             images.save_image(processed.images[0], p.outpath_grids, "xy_grid", prompt=p.prompt, seed=processed.seed, grid=True, p=p, info = infostring)
 
-        if put_in_dir: #reset save path
+        if put_in_dir: #reset save path #TODO: I need to fix how saving works
             opts.outdir_img2img_samples = savedir_img2img
             opts.outdir_txt2img_samples = savedir_txt2img
+            opts.save_to_dirs=prev_save_to_dirs
         return processed
