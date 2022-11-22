@@ -67,12 +67,13 @@ For example: modifier, highly detailed, 4k will replace ALL occurrences of the w
 There is a minor "bug" where if you use Prompt Matrix in both x and y, and the placeholder words share the same order of characters, the parser will throw an error. (Example: on x: modifier, 4k, 8k; on y: modifier2, realistic, photo) This is because Python replaces all instances of a word like "modifier" with the desired words, and it ends up also replacing the other axis's placeholder word, for example "modifier2". A solution to this is to use "modifier1" as the placeholder value for one axis, and "modifier2" as the placeholder for the other axis.
 
 
-Example usage:
+## Example usage:
 
 ![Screenshot 2022-11-16 211052](https://user-images.githubusercontent.com/80003301/202345637-a48d8e28-6bd7-4d3e-9539-94d41b4c6d50.png)
 
 
-Example images:
+# Example images:
+
 Prompt: "darth vader riding a bicycle, modifier";
 X: Multitool: "Prompt S/R: bicycle, motorcycle | CFG scale: 7.5, 10 | Prompt S/R Placeholder: modifier, 4k, artstation";
 Y: Multitool: "Sampler: Euler, Euler a | Steps: 20, 50"
