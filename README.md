@@ -84,12 +84,12 @@ X: Steps: "10, 20, 30, 40, 50"; <br>
 Y: Multitool: "Checkpoint name: 1.4, 1.5 | Sampler: Euler, Euler a"
 ![xy_grid-0001-2789616861-darth vader riding a bicycle-min](https://user-images.githubusercontent.com/80003301/202277910-40d72e95-0afe-4a84-821f-d769035e27d1.png)
 
-Prompt: "darth vader riding a bicycle";
-X: Multitool: "Prompt S/R: bicycle, motorcycle, skateboard | CFG scale: 7.5, 10";
+Prompt: "darth vader riding a bicycle"; <br>
+X: Multitool: "Prompt S/R: bicycle, motorcycle, skateboard | CFG scale: 7.5, 10"; <br>
 Y: Multitool: "Sampler: Euler, Euler a | Steps: 20, 50"
 ![xy_grid-0005-3171584222-darth vader riding a bicycle-min](https://user-images.githubusercontent.com/80003301/202277930-33f371b9-e128-44d0-83dc-e0ac632d5b18.png)
 
-Prompt: "darth vader riding a bicycle, modifier";
-X: Multitool: "Prompt matrix: 1, 4k, 8k | steps: 20, 50";
+Prompt: "darth vader riding a bicycle, modifier"; <br>
+X: Multitool: "Prompt matrix: 1, 4k, 8k | steps: 20, 50"; <br>
 Y: Multitool: "Checkpoint name: 1.4, 1.5 | Sampler: Euler, Euler a"
 ![xy_grid-0073-1378890763-darth vader riding a bicycle, 1-min](https://user-images.githubusercontent.com/80003301/202277967-714d7e33-90bf-41f8-a6af-c6cb4594dd79.png)
