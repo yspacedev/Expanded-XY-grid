@@ -13,7 +13,7 @@ S/R Placeholder
 
 Add PNGinfo to grid image
 
-
+## More info
 
 The code may be very confusing and cluttered because I am not a professional programmer. You are free to add a pull request to this repository to clean up my code, add a feature, or squash some bugs. For now, I've tested it enough to say it works in most cases, but if you encounter a case where it errors out or doesn't work properly, put it in the discussions.
 
@@ -23,15 +23,15 @@ I'm calling this an Alpha release because it is by no means complete or bug free
 
 
 
-Feature usage:
+# Feature usage:
 
 
-Multitool:
+## Multitool:
 
 The Multitool allows you to adjust multiple parameters in one axis. This allows for theoretically unlimited parameters to be adjusted in one xy grid.
 You can now have a CFG scale and steps plot that also compares checkpoint name.
 
-Format:
+### Format:
 <Exact name of field (not case sensitive)>: parameter1, parameter2... | <Exact name of field (not case sensitive)>: parameter1, parameter2... | ...
 
 For example: "Steps: 20, 50 | CFG scale: 7, 10" will create an axis with all possible combinations of those values (Steps: 20 | CFG scale: 7; Steps: 20 | CFG scale: 10; Steps: 50 | CFG scale: 7; Steps: 50 | CFG scale: 10)
@@ -44,7 +44,7 @@ It also works with text parameters with fields like S/R. For example, "Prompt S/
 
 
 
-Prompt S/R placeholder:
+## Prompt S/R placeholder:
 
 This very small feature allows you to replace a placeholder value (the first value in the list of parameters) with desired values. 
 
@@ -58,7 +58,7 @@ Prompt S/R Placeholder will create the prompts [darth vader riding a bicycle, ; 
 
 
 
-Prompt matrix:
+## Prompt matrix:
 
 This feature functions like S/R placeholder, except it replaces the placeholder value with different combinations of other parameters.
 
