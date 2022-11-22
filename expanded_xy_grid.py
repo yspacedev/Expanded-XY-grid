@@ -10,16 +10,16 @@ import numpy as np
 import modules.scripts as scripts
 import gradio as gr
 
-from modules import images
+from modules import images, sd_samplers
 from modules.hypernetworks import hypernetwork
-from modules.processing import process_images, Processed, get_correct_sampler, StableDiffusionProcessingTxt2Img
+from modules.processing import process_images, Processed, StableDiffusionProcessingTxt2Img
 from modules.shared import opts, cmd_opts, state
 import modules.shared as shared
 import modules.sd_samplers
 import modules.sd_models
 import re
 
-#add get prompt order to work. I'll have timplement a check in all the multitool stuff to treat it as an array instead of a string
+
 def process_axis(opt, vals):
     if opt.label == 'Nothing':
         return [0]
@@ -125,7 +125,7 @@ def apply_multitool(p, x, xs):
     fields = []
     data = []
     attributes=x.split(" | ")
-    for attr in attributes: # if it's one of the special ones, parse the str(list of lists) into a list of lists #add (not completely sure if this works)
+    for attr in attributes:
         field, datum = attr.split(": ")
         fields.append(field)
         option = axis_opt_name_find(field)
@@ -145,11 +145,11 @@ def apply_multitool(p, x, xs):
                 field, datapiece = attr.split(": ")
                 if field == fields[ind] and datapiece not in datalist:
                     option = axis_opt_name_find(fields[ind])
-                    if option.type == int: # if it's one of the special ones, parse the str(list of lists) into a list of lists #add (not completely sure if this works)
+                    if option.type == int:
                         datalist.append(int(datapiece))
                     elif option.type == float:
                         datalist.append(float(datapiece))
-                    elif option.type == str_permutations or str_matrix_permutations:
+                    elif option.type == str_permutations:
                         datalist.append(datapiece.split(", "))
                     else:
                         datalist.append(datapiece)
@@ -242,13 +242,13 @@ def remove_junk(input_string):
     output_string = output_string.strip(", ")
     return output_string
 
-def format_multitool(p, opt, x):
+def format_multitool(p, opt, x): #this is not used, but the code works
     attrs = x.split(" | ")
     formatted_list = []
     for attr in attrs:
         field, datapiece = attr.split(": ")
         field_opt = axis_opt_name_find(field)
-        if field_opt.type == int: # if it's one of the special ones, parse the str(list of lists) into a list of lists #add (not completely sure if this works)
+        if field_opt.type == int:
             datapiece = int(datapiece)
         elif field_opt.type == float:
             datapiece = float(datapiece)
@@ -256,9 +256,9 @@ def format_multitool(p, opt, x):
         formatted_list.append(', '.join((field, datapiece)))
     return ' | '.join(formatted_list)
 
-def build_samplers_dict(p):
+def build_samplers_dict():
     samplers_dict = {}
-    for i, sampler in enumerate(get_correct_sampler(p)):
+    for i, sampler in enumerate(sd_samplers.all_samplers):
         samplers_dict[sampler.name.lower()] = i
         for alias in sampler.aliases:
             samplers_dict[alias.lower()] = i
@@ -266,7 +266,7 @@ def build_samplers_dict(p):
 
 
 def apply_sampler(p, x, xs):
-    sampler_index = build_samplers_dict(p).get(x.lower(), None)
+    sampler_index = build_samplers_dict().get(x.lower(), None)
     if sampler_index is None:
         raise RuntimeError(f"Unknown sampler: {x}")
 
@@ -274,7 +274,7 @@ def apply_sampler(p, x, xs):
 
 
 def confirm_samplers(p, xs):
-    samplers_dict = build_samplers_dict(p)
+    samplers_dict = build_samplers_dict()
     for x in xs:
         if x.lower() not in samplers_dict.keys():
             raise RuntimeError(f"Unknown sampler: {x}")
@@ -470,17 +470,18 @@ class Script(scripts.Script):
         current_axis_options = [x for x in axis_options if type(x) == AxisOption or type(x) == AxisOptionImg2Img and is_img2img]
 
         with gr.Row():
-            x_type = gr.Dropdown(label="X type", choices=[x.label for x in current_axis_options], value=current_axis_options[1].label, visible=False, type="index", elem_id="x_type")
-            x_values = gr.Textbox(label="X values", visible=False, lines=1)
+            x_type = gr.Dropdown(label="X type", choices=[x.label for x in current_axis_options], value=current_axis_options[1].label, type="index", elem_id="x_type", interactive = True)
+            x_values = gr.Textbox(label="X values", lines=1)
 
         with gr.Row():
-            y_type = gr.Dropdown(label="Y type", choices=[x.label for x in current_axis_options], value=current_axis_options[0].label, visible=False, type="index", elem_id="y_type")
-            y_values = gr.Textbox(label="Y values", visible=False, lines=1)
-
-        draw_legend = gr.Checkbox(label='Draw legend', value=True)
-        include_lone_images = gr.Checkbox(label='Include Separate Images', value=False)
-        no_fixed_seeds = gr.Checkbox(label='Keep -1 for seeds', value=False)
-        put_in_dir = gr.Checkbox(label='Put all individual images in a directory', value=False)
+            y_type = gr.Dropdown(label="Y type", choices=[x.label for x in current_axis_options], value=current_axis_options[0].label, type="index", elem_id="y_type", interactive = True)
+            y_values = gr.Textbox(label="Y values", lines=1)
+        
+        with gr.Row():
+            draw_legend = gr.Checkbox(label='Draw legend', value=True, visible=True)
+            include_lone_images = gr.Checkbox(label='Include Separate Images', value=False, visible=True)
+            no_fixed_seeds = gr.Checkbox(label='Keep -1 for seeds', value=False, visible=True)
+            put_in_dir = gr.Checkbox(label='Put all individual images in a directory', value=False, visible=True)
 
         return [x_type, x_values, y_type, y_values, draw_legend, include_lone_images, no_fixed_seeds, put_in_dir]
 
@@ -594,7 +595,7 @@ class Script(scripts.Script):
             Size: {p.width}x{p.height},
             Model hash: {getattr(p, 'sd_model_hash', None if not opts.add_model_hash_to_info or not shared.sd_model.sd_model_hash else shared.sd_model.sd_model_hash)},
             Model: {(None if not opts.add_model_name_to_info or not shared.sd_model.sd_checkpoint_info.model_name else shared.sd_model.sd_checkpoint_info.model_name.replace(',', '').replace(':', ''))},
-            Sampler: {get_correct_sampler(p)[p.sampler_index].name}
+            Sampler: {p.sampler_name}
         """
         if opts.grid_save:
             images.save_image(processed.images[0], p.outpath_grids, "xy_grid", prompt=p.prompt, seed=processed.seed, grid=True, p=p, info = infostring)
