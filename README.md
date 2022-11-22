@@ -3,15 +3,15 @@ Custom script for AUTOMATIC1111's stable-diffusion-webui that adds more features
 
 ## Features added:
 
-Multitool
+- Multitool
 
-Customizable prompt matrix
+- Customizable prompt matrix
 
-Group files in a directory
+- Group files in a directory
 
-S/R Placeholder
+- S/R Placeholder
 
-Add PNGinfo to grid image
+- Add PNGinfo to grid image
 
 ## More info
 
