@@ -19,6 +19,8 @@ import modules.sd_samplers
 import modules.sd_models
 import re
 
+CHAR_SPLIT_TYPE = ":"
+CHAR_SPLIT_MULTITOOL = "|"
 
 def process_axis(opt, vals):
     if opt.label == 'Nothing':
@@ -164,10 +166,10 @@ def parse_multitool(parse_input):
     data=[]
     fields=[]
     #parse the typed input (this is the main parser that gets all the values)
-    splitinput = parse_input.split("|")
+    splitinput = parse_input.split(CHAR_SPLIT_MULTITOOL)
     for param in splitinput:
         param=param.strip()
-        field, datapiece = param.split(":")
+        field, datapiece = param.split(CHAR_SPLIT_TYPE)
         fields.append(axis_opt_name_find(field.strip()).label) #do this to get a consistent field name (with consistent capitalization) rather than whatever the user types
         data.append(datapiece.strip())
     newdata = []
@@ -266,11 +268,11 @@ def build_samplers_dict():
 
 
 def apply_sampler(p, x, xs):
-    sampler_index = build_samplers_dict().get(x.lower(), None)
-    if sampler_index is None:
+    sampler_name = sd_samplers.samplers_map.get(x.lower(), None)
+    if sampler_name is None:
         raise RuntimeError(f"Unknown sampler: {x}")
 
-    p.sampler_index = sampler_index
+    p.sampler_name = sampler_name
 
 
 def confirm_samplers(p, xs):
